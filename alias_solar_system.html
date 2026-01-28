@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק אלישמש - מערכת השמש</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff006e 0%, #ff4d94 25%, #ff66a3 50%, #ff4d94 75%, #ff006e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            0% {
+                background: linear-gradient(135deg, #ff006e 0%, #ff4d94 25%, #ff66a3 50%, #ff4d94 75%, #ff006e 100%);
+            }
+            100% {
+                background: linear-gradient(135deg, #ff4d94 0%, #ff66a3 25%, #ff99c2 50%, #ff66a3 75%, #ff4d94 100%);
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .start-screen, .game-screen {
+            text-align: center;
+        }
+        
+        .game-screen {
+            display: none;
+        }
+        
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .word {
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .timer {
+            font-size: 2.5em;
+            color: #1e3c72;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .timer.warning {
+            color: #dc2626;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .score {
+            font-size: 1.5em;
+            color: #1e3c72;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background: #2a5298;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-success {
+            background: #10b981;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-skip {
+            background: #f59e0b;
+        }
+        
+        .btn-skip:hover {
+            background: #d97706;
+        }
+        
+        .instructions {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: right;
+            line-height: 1.8;
+            color: #334155;
+        }
+        
+        .instructions h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+        
+        .game-over {
+            display: none;
+            text-align: center;
+        }
+        
+        .final-score {
+            font-size: 3em;
+            color: #10b981;
+            margin: 20px 0;
+        }
+        
+        .stars {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 אלישמש 🌟</h1>
+        <p class="subtitle">משחק הסבר מילים לכיתה ה'</p>
+        
+        <div class="start-screen">
+            <div class="instructions">
+                <h3>איך משחקים?</h3>
+                <p>🎯 תקבלו מילה הקשורה למערכת השמש</p>
+                <p>💬 הסבירו את המילה בלי לומר אותה!</p>
+                <p>⏱️ יש לכם 60 שניות לנחש כמה שיותר מילים</p>
+                <p>✅ לחצו "ניחשו!" אם ניחשו נכון</p>
+                <p>⏭️ לחצו "דלגו" אם רוצים לדלג</p>
+            </div>
+            <button onclick="startGame()">התחל משחק!</button>
+        </div>
+        
+        <div class="game-screen">
+            <div class="timer" id="timer">60</div>
+            <div class="score" id="score">ניקוד: 0</div>
+            
+            <div class="card">
+                <div class="word" id="word"></div>
+            </div>
+            
+            <button class="btn-success" onclick="correctAnswer()">✅ ניחשו!</button>
+            <button class="btn-skip" onclick="skipWord()">⏭️ דלגו</button>
+        </div>
+        
+        <div class="game-over">
+            <h2>🎉 המשחק הסתיים! 🎉</h2>
+            <div class="final-score" id="finalScore"></div>
+            <div class="stars" id="stars"></div>
+            <p style="font-size: 1.3em; margin: 20px 0; color: #334155;">עבודה מצוינת!</p>
+            <button onclick="location.reload()">שחקו שוב!</button>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            "שמש", "ירח", "כדור הארץ", "מאדים", "צדק", 
+            "שבתאי", "אורנוס", "נפטון", "כוכב", "כוכב לכת",
+            "מערכת השמש", "חלל", "אסטרונאוט", "רקטה", "חליל",
+            "מעבורת חלל", "טבעות", "כוכב זנב", "מכתש", "לילה",
+            "יום", "עונות השנה", "אטמוספירה", "כבידה", "מסלול",
+            "גלקסיה", "שביט", "מטאור", "אסטרואיד", "טלסקופ",
+            "נאס״א", "חור שחור", "שמי הלילה", "מרקורי", "ונוס"
+        ];
+        
+        let currentWords = [];
+        let currentIndex = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        function startGame() {
+            document.querySelector('.start-screen').style.display = 'none';
+            document.querySelector('.game-screen').style.display = 'block';
+            
+            currentWords = shuffleArray(words);
+            currentIndex = 0;
+            score = 0;
+            timeLeft = 60;
+            
+            showWord();
+            startTimer();
+        }
+        
+        function showWord() {
+            if (currentIndex < currentWords.length) {
+                document.getElementById('word').textContent = currentWords[currentIndex];
+            } else {
+                currentWords = shuffleArray(words);
+                currentIndex = 0;
+                document.getElementById('word').textContent = currentWords[currentIndex];
+            }
+        }
+        
+        function startTimer() {
+            const timerElement = document.getElementById('timer');
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 10) {
+                    timerElement.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+        
+        function correctAnswer() {
+            score++;
+            document.getElementById('score').textContent = 'ניקוד: ' + score;
+            currentIndex++;
+            showWord();
+        }
+        
+        function skipWord() {
+            currentIndex++;
+            showWord();
+        }
+        
+        function endGame() {
+            clearInterval(timerInterval);
+            document.querySelector('.game-screen').style.display = 'none';
+            document.querySelector('.game-over').style.display = 'block';
+            
+            document.getElementById('finalScore').textContent = score + ' מילים!';
+            
+            let stars = '';
+            if (score >= 15) stars = '⭐⭐⭐';
+            else if (score >= 10) stars = '⭐⭐';
+            else if (score >= 5) stars = '⭐';
+            
+            document.getElementById('stars').textContent = stars;
+        }
+    </script>
+</body>
+</html>
